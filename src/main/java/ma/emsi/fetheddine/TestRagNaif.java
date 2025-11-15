@@ -27,8 +27,18 @@ import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
 import java.util.Scanner;
+import java.util.logging.ConsoleHandler;
+import java.util.logging.Level;
+import java.util.logging.Logger;
 
 public class TestRagNaif {
+    private static void configureLogger() {
+        Logger packageLogger = Logger.getLogger("dev.langchain4j");
+        packageLogger.setLevel(Level.FINE);
+        ConsoleHandler handler = new ConsoleHandler();
+        handler.setLevel(Level.FINE);
+        packageLogger.addHandler(handler);
+    }
 
     // Helper pour charger les ressources
     private static Path getPath(String fileName) {
@@ -41,10 +51,14 @@ public class TestRagNaif {
     }
 
     public static void main(String[] args) {
+
+        configureLogger();
+
         ChatModel model = GoogleAiGeminiChatModel.builder()
                 .apiKey(System.getenv("GEMINI_KEY"))
                 .modelName("gemini-2.5-flash")
                 .temperature(0.3)
+                .logRequestsAndResponses(true)
                 .build();
 
         Path documentPath = getPath("rag.pdf");
