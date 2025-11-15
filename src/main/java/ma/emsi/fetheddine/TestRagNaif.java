@@ -26,6 +26,7 @@ import java.net.URISyntaxException;
 import java.nio.file.Path;
 import java.nio.file.Paths;
 import java.util.List;
+import java.util.Scanner;
 
 public class TestRagNaif {
 
@@ -46,7 +47,6 @@ public class TestRagNaif {
                 .temperature(0.3)
                 .build();
 
-        System.out.println("Phase 1 : Démarrage de l'ingestion...");
         Path documentPath = getPath("rag.pdf");
         DocumentParser parser = new ApacheTikaDocumentParser();
         Document document = FileSystemDocumentLoader.loadDocument(documentPath, parser);
@@ -60,7 +60,6 @@ public class TestRagNaif {
         List<Embedding> embeddings = embeddingsResponse.content();
         EmbeddingStore<TextSegment> embeddingStore = new InMemoryEmbeddingStore<>();
         embeddingStore.addAll(embeddings, segments);
-        System.out.println("Phase 1 : Ingestion terminée. " + segments.size() + " segments ajoutés.");
 
         ContentRetriever contentRetriever = EmbeddingStoreContentRetriever.builder()
                 .embeddingStore(embeddingStore)
@@ -77,13 +76,30 @@ public class TestRagNaif {
                 .contentRetriever(contentRetriever)
                 .build();
 
-        System.out.println("\nPhase 2 : Test avec une question unique.");
-        String question = "Quelle est la signification de 'RAG' ; à quoi ça sert ?";
+        conversationAvec(assistant);
+    }
 
-        System.out.println("Question : " + question);
-        String reponse = assistant.chat(question);
-        System.out.println("Assistant : " + reponse);
+    private static void conversationAvec(Assistant assistant) {
+        try (Scanner scanner = new Scanner(System.in)) {
+            while (true) {
+                System.out.println("==================================================");
+                System.out.println("Posez votre question (ou 'fin' pour quitter) : ");
+                String question = scanner.nextLine();
 
-        System.out.println("\nProgramme terminé.");
+                if (question.isBlank()) {
+                    continue;
+                }
+
+                if ("fin".equalsIgnoreCase(question)) {
+                    System.out.println("Conversation terminée.");
+                    break;
+                }
+
+                System.out.println("==================================================");
+                String reponse = assistant.chat(question);
+                System.out.println("Assistant : " + reponse);
+                System.out.println("==================================================");
+            }
+        }
     }
 }
